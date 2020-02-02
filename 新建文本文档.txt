@@ -1,0 +1,20 @@
+springboot访问jsp下载，需要添加下面依赖
+<dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+但是如果要在tomat服务器上打开，则需要把scope改成provided；
+同时，main函数的类要继承extends org.springframework.boot.web.support.SpringBootServletInitializer，覆盖configure()方法为return builder.sources(MainApplication.class);
+
+同时，pom.xml中要配置mainClass
+
+
+
+
+
+
+2、springboot中自带的tomcat启动时，访问时不用带路径。
+在js中所有访问url请求，应该不能以斜杠开头，这样后台的请求只需要通过文件夹来拦截；
+如果带了斜杠，就是绝对路径；
