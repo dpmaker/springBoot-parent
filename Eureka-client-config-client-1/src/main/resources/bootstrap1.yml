@@ -1,0 +1,9 @@
+spring:
+  application:
+    name:config-client
+  cloud:
+    config:
+      uri:http://kd-d:8130
+      fail-fast:true
+    profiles:
+      active:dev

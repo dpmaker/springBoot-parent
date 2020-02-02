@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>train</groupId>
+	<artifactId>Eureka-server</artifactId>
+	<packaging>jar</packaging>
+	<name>Eureka-server Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+	
+	 
+	<parent>
+		<groupId>train</groupId>
+		<artifactId>spring-parent</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	
+
+	<properties>
+		<spring-cloud-version>Brixton.SR5</spring-cloud-version>
+	</properties>
+	
+	
+	
+<build>
+		<finalName>eureka-server</finalName>
+	
+       <plugins>
+		<plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<configuration>
+                 <mainClass>spring.EurekaServer</mainClass>
+			</configuration>
+			<executions>
+				<execution>
+					<goals>
+						<goal>repackage</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+	</plugins>
+    <!-- 打包所有jar包 -->
+    <resources>  
+        <resource>  
+            <directory>lib</directory>  
+            <targetPath>BOOT-INF/lib/</targetPath>  
+            <includes>  
+                <include>**/*.jar</include>  
+            </includes>  
+        </resource>  
+    </resources>  
+	</build>
+</project>
