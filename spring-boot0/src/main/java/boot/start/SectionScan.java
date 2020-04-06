@@ -9,12 +9,15 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
+import boot.start.example.TestScanner;
+
 
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Target(ElementType.TYPE)
-@Import({SectionRegister.class})
+//@Import({SectionRegister.class})
+@Import({TestScanner.class})
 public @interface SectionScan { // 启动类上面@SectionScan(basePackages={"扫描的类路径"}) 类似@ComponentScan(basePackages = {"com.migu.*"})
 
-	String[] basePackages() default {};
+	String[] value() default {};
 }

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Import;
 @Documented
 @Target(ElementType.TYPE)
 @Import({SectionMethodRegister.class})
-public @interface SectionMethodScan { // 启动类上面@SectionScan(basePackages={"扫描的类路径"}) 类似@ComponentScan(basePackages = {"com.migu.*"})
+public @interface SectionMethodScan{ // 启动类上面@SectionScan(basePackages={"扫描的类路径"}) 类似@ComponentScan(basePackages = {"com.migu.*"})
 
-	String[] basePackages() default {};
+	String[] value() default {};
 }

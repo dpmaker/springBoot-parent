@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Controller;
@@ -25,22 +26,26 @@ import boot.jdbc.mybatis.MybatisController;
 import boot.jdbc.mybatis.MybatisUserService;
 import boot.start.SectionMethodScan;
 import boot.start.SectionScan;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @ComponentScan("boot")
 @EnableAutoConfiguration
-@MapperScan("boot.generator.test.dao")
+@MapperScan({"boot.generator.test.dao","boot.jdbc.mybatis","boot.redis"})
 @SpringBootApplication
 @MyAnnotation(value="main running..")
 
 
-@SectionScan(basePackages="boot.start.*")
-@SectionMethodScan(basePackages="boot.start.*")
+@SectionScan(value="boot.start")
+@SectionMethodScan(value="boot.start.*")
 
 //http://localhost:8020/mybatis/getUserByName/1
+
+//@EnableSwagger2
+@EnableCaching
 public class SpringBoot {
 
 	/*
-	   @Bean
+	   @Bean 
 	   public ActiveMQQueue queue() {
 	      return new ActiveMQQueue("promoteAct");
 	   }

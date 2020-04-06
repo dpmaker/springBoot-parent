@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="boot.jdbc.mybatis.resultMap.ResultMapMapper">
+
+
+
+	<resultMap id="user" type="bean.User">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<collection property="books" ofType="bean.Book">
+			<id property="id" column="id" />
+			<result property="bookField" column="bookName" />
+			<result property="bookName" column="bookName" />
+		</collection>
+	</resultMap>
+	
+	
+	<resultMap id="book1" type="bean.Book">
+		<id property="id" column="id" />
+		<result property="bookField" column="bookName" />
+		<result property="bookName" column="bookName" />
+		<association property="user" column="userId" javaType="bean.User" select="boot.generator.test.dao.IMybatisUserDao.selectUser"/>
+	</resultMap>
+
+
+	<select id="selectUser" resultMap="user">
+		select * from user where id=#{id};
+	</select>
+	
+	
+	<select id="getAllBooks1" resultType="bean.Book">
+		select * from t_book;
+	</select>
+
+	<select id="getAllBooks" resultMap="book1">
+		select * from t_book where 1=2;
+	</select>
+	
+	
+
+</mapper>

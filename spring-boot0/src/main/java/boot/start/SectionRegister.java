@@ -14,12 +14,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.classreading.SimpleMetadataReaderFactory;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.SystemPropertyUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -90,7 +92,11 @@ public class SectionRegister
 		basePackages = getBasePackages(metadata);
 
 		Map<String, Section> sectionMap = new HashMap<String, Section>();
-
+		String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
+                .concat(ClassUtils.convertClassNameToResourcePath(SystemPropertyUtils.resolvePlaceholders(basePackages.toArray()[0].toString()))
+                        .concat(""));
+		
+		
 		for (String basePackage : basePackages) {
 
 			Set<BeanDefinition> candidates = new LinkedHashSet<BeanDefinition>();
@@ -101,10 +107,16 @@ public class SectionRegister
 				// 这里特别注意一下类路径必须这样写
 				// 获取指定包下的所有类
 				basePackage = basePackage.replace(".", "/");
-				Resource[] resources = resourcePatternResolver.getResources("classpath*:" + basePackage);
+				
+				resourcePatternResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+				 packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
+						resolveBasePackage(basePackage) + '/' + "**/*.class";
+				 Resource[]  resources = resourcePatternResolver.getResources(packageSearchPath);
 
 				MetadataReaderFactory metadata1 = new SimpleMetadataReaderFactory();
 				for (Resource resource : resources) {
+					if(!resource.getFilename().endsWith(".class"))
+						continue;
 					MetadataReader metadataReader = metadata1.getMetadataReader(resource);
 					ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 					sbd.setResource(resource);
@@ -129,12 +141,16 @@ public class SectionRegister
 
 	}
 
+	protected String resolveBasePackage(String basePackage) {
+		return ClassUtils.convertClassNameToResourcePath(this.environment.resolveRequiredPlaceholders(basePackage));
+	}
+	
 	protected Set<String> getBasePackages(AnnotationMetadata importingClassMetadata) {
 		Map<String, Object> attributes = importingClassMetadata
 				.getAnnotationAttributes(SectionScan.class.getCanonicalName());
 
 		Set<String> basePackages = new HashSet<String>();
-		for (String pkg : (String[]) attributes.get("basePackages")) {
+		for (String pkg : (String[]) attributes.get("value")) {
 			if (pkg != null && !"".equals(pkg)) {
 				basePackages.add(pkg);
 			}
@@ -153,7 +169,7 @@ public class SectionRegister
 
 		return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
 
-			/*
+			
 			@Override
 			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 				if (beanDefinition.getMetadata().isIndependent()) {
@@ -176,7 +192,7 @@ public class SectionRegister
 				return false;
 
 			}
-			*/
+			
 		};
 	}
 	

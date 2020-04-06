@@ -15,12 +15,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.core.type.classreading.SimpleMetadataReaderFactory;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.SystemPropertyUtils;
 
 import java.lang.*;
 
@@ -68,7 +70,7 @@ public class SectionMethodRegister
 	private void logPackageScan(AnnotationMetadata metadata) {
 		Map<String, Object> defaultAttrs = metadata.getAnnotationAttributes(SectionScan.class.getName(), true);
 		if (defaultAttrs != null && defaultAttrs.size() > 0) {
-			LOG.info("section package scan: " + buildPackages((String[]) defaultAttrs.get("basePackages")));
+			LOG.info("section package scan: " + buildPackages((String[]) defaultAttrs.get("value")));
 		}
 	}
 
@@ -94,6 +96,9 @@ public class SectionMethodRegister
 		basePackages = getBasePackages(metadata);
 
 		Map<String, Section> sectionMap = new HashMap<String, Section>();
+		String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX
+                .concat(ClassUtils.convertClassNameToResourcePath(SystemPropertyUtils.resolvePlaceholders(basePackages.toArray()[0].toString()))
+                        .concat(""));
 
 		for (String basePackage : basePackages) {
 
@@ -105,10 +110,16 @@ public class SectionMethodRegister
 				// 这里特别注意一下类路径必须这样写
 				// 获取指定包下的所有类
 				basePackage = basePackage.replace(".", "/");
-				Resource[] resources = resourcePatternResolver.getResources("classpath*:" + basePackage);
+				
+				resourcePatternResolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+				 packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
+						resolveBasePackage(basePackage) + '/' + "**/*.class";
+				 Resource[]  resources = resourcePatternResolver.getResources(packageSearchPath);
 
 				MetadataReaderFactory metadata1 = new SimpleMetadataReaderFactory();
 				for (Resource resource : resources) {
+					if(!resource.getFilename().endsWith(".class"))
+						continue;
 					MetadataReader metadataReader = metadata1.getMetadataReader(resource);
 					ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 					sbd.setResource(resource);
@@ -145,7 +156,7 @@ public class SectionMethodRegister
 				.getAnnotationAttributes(SectionScan.class.getCanonicalName());
 
 		Set<String> basePackages = new HashSet<String>();
-		for (String pkg : (String[]) attributes.get("basePackages")) {
+		for (String pkg : (String[]) attributes.get("value")) {
 			if (pkg != null && !"".equals(pkg)) {
 				basePackages.add(pkg);
 			}
@@ -157,14 +168,16 @@ public class SectionMethodRegister
 		return basePackages;
 	}
 	
-	 
+	protected String resolveBasePackage(String basePackage) {
+		return ClassUtils.convertClassNameToResourcePath(this.environment.resolveRequiredPlaceholders(basePackage));
+	}
 
 	
 	protected ClassPathScanningCandidateComponentProvider getScanner() {
 
 		return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
 
-			/*
+			
 			@Override
 			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 				if (beanDefinition.getMetadata().isIndependent()) {
@@ -174,7 +187,7 @@ public class SectionMethodRegister
 							&& Annotation.class.getName().equals(beanDefinition.getMetadata().getInterfaceNames()[0])) {
 						try {
 							Class<?> target = ClassUtils.forName(beanDefinition.getMetadata().getClassName(),
-									SectionRegister.this.classLoader);
+									SectionMethodRegister.this.classLoader);
 							return !target.isAnnotation();
 						} catch (Exception ex) {
 							this.logger.error(
@@ -187,7 +200,7 @@ public class SectionMethodRegister
 				return false;
 
 			}
-			*/
+			
 		};
 	}
 	
